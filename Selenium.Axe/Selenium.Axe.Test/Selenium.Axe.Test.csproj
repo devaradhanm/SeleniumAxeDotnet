@@ -75,7 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AxeBuilderTest.cs" />
-    <Compile Include="AxeContextOptionsTest.cs" />
+    <Compile Include="AxeRunContextTest.cs" />
     <Compile Include="AxeRunOptionsTest.cs" />
     <Compile Include="IntegrationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

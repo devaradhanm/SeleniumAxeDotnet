@@ -1,11 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using FluentAssertions;
 
 namespace Selenium.Axe.Test
@@ -13,6 +8,12 @@ namespace Selenium.Axe.Test
     [TestClass]
     public class AxeRunOptionsTest
     {
+        private readonly JsonSerializerSettings serializerSettings = new JsonSerializerSettings
+        {
+            Formatting = Formatting.None,
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
         [TestMethod]
         public void ShouldSerializeRunOnlyOption()
         {
@@ -25,7 +26,7 @@ namespace Selenium.Axe.Test
                 }
             };
 
-            var serializedObject = JsonConvert.SerializeObject(options);
+            var serializedObject = JsonConvert.SerializeObject(options, serializerSettings);
             var expectedObject = "{\"runOnly\":{\"type\":\"tag\",\"values\":[\"tag1\",\"tag2\"]}}";
             serializedObject.Should().Be(expectedObject);
         }
@@ -43,7 +44,7 @@ namespace Selenium.Axe.Test
                 }
             };
 
-            var serializedObject = JsonConvert.SerializeObject(options);
+            var serializedObject = JsonConvert.SerializeObject(options, serializerSettings);
 
             var expectedObject = "{\"rules\":{\"enabledRule\":{\"enabled\":true},\"disabledRule\":{\"enabled\":false},\"rule3WithoutOptionsData\":{}}}";
             serializedObject.Should().Be(expectedObject);

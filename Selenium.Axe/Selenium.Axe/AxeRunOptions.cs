@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Selenium.Axe
 {
-    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
+    [JsonObject]
     public class RunOnlyOptions
     {
         [JsonProperty("type")]
@@ -14,14 +14,14 @@ namespace Selenium.Axe
 
     }
 
-    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
+    [JsonObject]
     public class RuleOptions
     {
         [JsonProperty("enabled")]
         public bool? Enabled { get; set; }
     }
 
-    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
+    [JsonObject]
     public class AxeRunOptions
     {
         [JsonProperty("runOnly")]
