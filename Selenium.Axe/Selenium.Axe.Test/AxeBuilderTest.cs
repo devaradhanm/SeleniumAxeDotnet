@@ -3,7 +3,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
 using OpenQA.Selenium;
-using Selenium.Axe.Properties;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -67,7 +66,7 @@ namespace Selenium.Axe.Test
         {
 
             SetupVerifiableAxeInjectionCall();
-            SetupVerifiableScanCall(null,"{}");
+            SetupVerifiableScanCall(null, "{}");
 
             var builder = new AxeBuilder(webDriverMock.Object);
             var result = builder.Analyze();
@@ -236,6 +235,43 @@ namespace Selenium.Axe.Test
             jsExecutorMock.VerifyAll();
         }
 
+        [TestMethod]
+        public void ShouldThrowIfNullParameterPassed()
+        {
+            SetupVerifiableAxeInjectionCall();
+
+            VerifyExceptionThrown<ArgumentNullException>(() => new AxeBuilder(webDriverMock.Object, null));
+            VerifyExceptionThrown<ArgumentNullException>(() => new AxeBuilder(null));
+
+            var builder = new AxeBuilder(webDriverMock.Object);
+
+            VerifyExceptionThrown<ArgumentNullException>(() => builder.WithRules(null));
+            VerifyExceptionThrown<ArgumentNullException>(() => builder.DisableRules(null));
+            VerifyExceptionThrown<ArgumentNullException>(() => builder.WithTags(null));
+            VerifyExceptionThrown<ArgumentNullException>(() => builder.Include(null));
+            VerifyExceptionThrown<ArgumentNullException>(() => builder.Exclude(null));
+        }
+
+        [TestMethod]
+        public void ShouldThrowIfEmptyParameterPassed()
+        {
+            var values = new string[] { "val1", "" };
+
+            SetupVerifiableAxeInjectionCall();
+
+            var builder = new AxeBuilder(webDriverMock.Object);
+
+            VerifyExceptionThrown<ArgumentException>(() => builder.WithRules(values));
+            VerifyExceptionThrown<ArgumentException>(() => builder.DisableRules(values));
+            VerifyExceptionThrown<ArgumentException>(() => builder.WithTags(values));
+            VerifyExceptionThrown<ArgumentException>(() => builder.Include(values));
+            VerifyExceptionThrown<ArgumentException>(() => builder.Exclude(values));
+        }
+
+        private void VerifyExceptionThrown<T>(Action action) where T : Exception {
+            action.Should().Throw<T>();
+        }
+
         private void VerifyAxeResult(AxeResult result)
         {
             result.Should().NotBeNull();
@@ -258,14 +294,14 @@ namespace Selenium.Axe.Test
             webDriverMock.Setup(d => d.SwitchTo()).Returns(targetLocatorMock.Object);
 
             jsExecutorMock
-                .Setup(js => js.ExecuteScript(Resources.axe_min)).Verifiable();
+                .Setup(js => js.ExecuteScript(EmbeddedResourceProvider.ReadEmbeddedFile("axe.min.js"))).Verifiable();
 
         }
 
         private void SetupVerifiableScanCall(string serializedContext, string serialzedOptions)
         {
             jsExecutorMock.Setup(js => js.ExecuteAsyncScript(
-                Resources.scan,
+                EmbeddedResourceProvider.ReadEmbeddedFile("scan.js"),
                 It.Is<string>(context => context == serializedContext),
                 It.Is<string>(options => options == serialzedOptions))).Returns(testAxeResult).Verifiable();
         }

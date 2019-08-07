@@ -36,7 +36,7 @@ namespace Selenium.Axe.Test
         [TestMethod]
         [DataRow("Chrome")]
         [DataRow("Firefox")]
-        public void TestAnalyzeTarget(string browser)
+        public void RunScanOnPage(string browser)
         {
             var expectedToolOptions = new AxeRunOptions()
             {
@@ -65,7 +65,7 @@ namespace Selenium.Axe.Test
 
         [TestMethod]
         [DataRow("Chrome")]
-        //[DataRow("Firefox")]
+        [DataRow("Firefox")]
         public void RunScanOnGivenElement(string browser)
         {
             this.InitDriver(browser);
@@ -103,7 +103,7 @@ namespace Selenium.Axe.Test
                     ChromeDriverService service = ChromeDriverService.CreateDefaultService(chromeDriverDirectory);
                     service.SuppressInitialDiagnosticInformation = true;
                     _webDriver = new ChromeDriver(chromeDriverDirectory, options);
-                    
+
                     break;
 
                 case "FIREFOX":

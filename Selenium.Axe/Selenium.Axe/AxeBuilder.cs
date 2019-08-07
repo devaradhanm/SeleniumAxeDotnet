@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OpenQA.Selenium;
-using Selenium.Axe.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +22,7 @@ namespace Selenium.Axe
         private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
         {
             Formatting = Formatting.None,
-            NullValueHandling = NullValueHandling.Ignore
+            NullValueHandling = NullValueHandling.Include
         };
 
         [Obsolete("Options is deprecated. This will be removed in future versions. Please use WithTags, WithRules & DisableRules apis instead")]
@@ -43,6 +42,8 @@ namespace Selenium.Axe
         /// <param name="tags">tags to be used for scanning</param>
         public AxeBuilder WithTags(params string[] tags)
         {
+            ValidateParameters(tags, nameof(tags));
+
             Options = null;
             runOptions.RunOnly = new RunOnlyOptions
             {
@@ -58,6 +59,8 @@ namespace Selenium.Axe
         /// <param name="rules">rules to be used for scanning</param>
         public AxeBuilder WithRules(params string[] rules)
         {
+            ValidateParameters(rules, nameof(rules));
+
             Options = null;
             runOptions.RunOnly = new RunOnlyOptions
             {
@@ -74,6 +77,8 @@ namespace Selenium.Axe
         /// <param name="rules">rules to be skipped from analysis</param>
         public AxeBuilder DisableRules(params string[] rules)
         {
+            ValidateParameters(rules, nameof(rules));
+
             Options = null;
             var rulesMap = new Dictionary<string, RuleOptions>();
             foreach (var rule in rules)
@@ -105,23 +110,14 @@ namespace Selenium.Axe
         }
 
         /// <summary>
-        /// Execute the script into the target.
-        /// </summary>
-        /// <param name="args">args to be passed to scan function (context, options)</param>
-        private AxeResult Execute(params object[] args)
-        {
-            string stringifiedResult = (string) ((IJavaScriptExecutor)_webDriver).ExecuteAsyncScript(Resources.scan, args);
-            var jObject = JObject.Parse(stringifiedResult);
-            return new AxeResult(jObject);   
-        }
-
-        /// <summary>
         /// Selectors to include in the validation.
         /// </summary>
         /// <param name="selectors">Any valid CSS selectors</param>
         /// <returns></returns>
         public AxeBuilder Include(params string[] selectors)
         {
+            ValidateParameters(selectors, nameof(selectors));
+
             runContext.Include = runContext.Include ?? new List<string[]>();
             runContext.Include.Add(selectors);
             return this;
@@ -134,6 +130,8 @@ namespace Selenium.Axe
         /// <returns></returns>
         public AxeBuilder Exclude(params string[] selectors)
         {
+            ValidateParameters(selectors, nameof(selectors));
+
             runContext.Exclude = runContext.Exclude ?? new List<string[]>();
             runContext.Exclude.Add(selectors);
             return this;
@@ -162,6 +160,30 @@ namespace Selenium.Axe
             string runOptionsToBeSent = string.IsNullOrWhiteSpace(Options) ? JsonConvert.SerializeObject(runOptions, JsonSerializerSettings) : Options;
 
             return Execute(contextToBeSent, runOptionsToBeSent);
+        }
+
+        /// <summary>
+        /// Execute the script into the target.
+        /// </summary>
+        /// <param name="args">args to be passed to scan function (context, options)</param>
+        private AxeResult Execute(params object[] args)
+        {
+            string stringifiedResult = (string)((IJavaScriptExecutor)_webDriver).ExecuteAsyncScript(EmbeddedResourceProvider.ReadEmbeddedFile("scan.js"), args);
+            var jObject = JObject.Parse(stringifiedResult);
+            return new AxeResult(jObject);
+        }
+
+        private static void ValidateParameters(string[] parameterValue, string parameterName)
+        {
+            if (parameterValue == null)
+            {
+                throw new ArgumentNullException(parameterName);
+            }
+
+            if (parameterValue.Any(string.IsNullOrEmpty))
+            {
+                throw new ArgumentException("There is some items null or empty", parameterName);
+            }
         }
     }
 }

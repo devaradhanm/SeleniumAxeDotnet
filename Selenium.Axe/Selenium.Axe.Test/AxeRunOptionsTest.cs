@@ -11,7 +11,6 @@ namespace Selenium.Axe.Test
         private readonly JsonSerializerSettings serializerSettings = new JsonSerializerSettings
         {
             Formatting = Formatting.None,
-            NullValueHandling = NullValueHandling.Ignore
         };
 
         [TestMethod]

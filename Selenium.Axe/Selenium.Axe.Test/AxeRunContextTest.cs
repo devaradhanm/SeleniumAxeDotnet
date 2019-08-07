@@ -21,5 +21,15 @@ namespace Selenium.Axe.Test
 
             JsonConvert.SerializeObject(context).Should().Be(expectedContent);
         }
+
+        [TestMethod]
+        public void ShouldNotIncludeNullPropertiesOnSerializing()
+        {
+            var context = new AxeRunContext();
+
+            var expectedContent = "{}";
+
+            JsonConvert.SerializeObject(context).Should().Be(expectedContent);
+        }
     }
 }
