@@ -1,6 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OpenQA.Selenium;
+using Selenium.Axe.Properties;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Selenium.Axe
 {
@@ -11,18 +15,72 @@ namespace Selenium.Axe
     public class AxeBuilder
     {
         private readonly IWebDriver _webDriver;
-        private readonly IncludeExcludeManager _includeExcludeManager = new IncludeExcludeManager();
 
-        private static readonly AxeBuilderOptions DefaultOptions = new AxeBuilderOptions {ScriptProvider = new EmbeddedResourceAxeProvider()};
+        private readonly AxeRunContext runContext = new AxeRunContext();
+        private readonly AxeRunOptions runOptions = new AxeRunOptions();
 
-    	 public string Options { get; set; } = "{}";
+        private static readonly AxeBuilderOptions DefaultOptions = new AxeBuilderOptions { ScriptProvider = new EmbeddedResourceAxeProvider() };
+
+        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
+        {
+            Formatting = Formatting.None,
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
 
         /// <summary>
         /// Initialize an instance of <see cref="AxeBuilder"/>
         /// </summary>
         /// <param name="webDriver">Selenium driver to use</param>
-        public AxeBuilder(IWebDriver webDriver): this(webDriver, DefaultOptions)
+        public AxeBuilder(IWebDriver webDriver) : this(webDriver, DefaultOptions)
         {
+        }
+
+        /// <summary>
+        /// Limit analysis to only the specified tags. Cannot be used with <see cref="WithRules(string[])"/>
+        /// </summary>
+        /// <param name="tags">tags to be used for scanning</param>
+        public AxeBuilder WithTags(params string[] tags)
+        {
+            runOptions.RunOnly = new RunOnlyOptions
+            {
+                Type = "tag",
+                Values = tags.ToList()
+            };
+            return this;
+        }
+
+        /// <summary>
+        /// Limit analysis to only the specified rules. Cannot be used with <see cref="WithTags(string[])"/>
+        /// </summary>
+        /// <param name="rules">rules to be used for scanning</param>
+        public AxeBuilder WithRules(params string[] rules)
+        {
+            runOptions.RunOnly = new RunOnlyOptions
+            {
+                Type = "rule",
+                Values = rules.ToList()
+            };
+
+            return this;
+        }
+
+        /// <summary>
+        ///  Set the list of rules to skip when running an analysis
+        /// </summary>
+        /// <param name="rules">rules to be skipped from analysis</param>
+        public AxeBuilder DisableRules(params string[] rules)
+        {
+            var rulesMap = new Dictionary<string, RuleOptions>();
+            foreach (var rule in rules)
+            {
+                rulesMap[rule] = new RuleOptions
+                {
+                    Enabled = false
+                };
+            }
+            runOptions.Rules = rulesMap;
+            return this;
         }
 
         /// <summary>
@@ -45,13 +103,12 @@ namespace Selenium.Axe
         /// <summary>
         /// Execute the script into the target.
         /// </summary>
-        /// <param name="command">Script to execute.</param>
-        /// <param name="args"></param>
-        private AxeResult Execute(string command, params object[] args)
+        /// <param name="args">args to be passed to scan function (context, options)</param>
+        private AxeResult Execute(params object[] args)
         {
-            object response = ((IJavaScriptExecutor)_webDriver).ExecuteAsyncScript(command, args);
-            var jObject = JObject.FromObject(response);
-            return new AxeResult(jObject);   
+            object response = ((IJavaScriptExecutor)_webDriver).ExecuteAsyncScript(Resources.scan, args);
+            var jObject = JObject.Parse(response.ToString());
+            return new AxeResult(jObject);
         }
 
         /// <summary>
@@ -61,19 +118,20 @@ namespace Selenium.Axe
         /// <returns></returns>
         public AxeBuilder Include(params string[] selectors)
         {
-            _includeExcludeManager.Include(selectors);
+            runContext.Include = runContext.Include ?? new List<string[]>();
+            runContext.Include.Add(selectors);
             return this;
         }
 
         /// <summary>
-        /// Exclude selectors
         /// Selectors to exclude in the validation.
         /// </summary>
         /// <param name="selectors">Any valid CSS selectors</param>
         /// <returns></returns>
         public AxeBuilder Exclude(params string[] selectors)
         {
-            _includeExcludeManager.Exclude(selectors);
+            runContext.Exclude = runContext.Include ?? new List<string[]>();
+            runContext.Exclude.Add(selectors);
             return this;
         }
 
@@ -85,8 +143,7 @@ namespace Selenium.Axe
         public AxeResult Analyze(IWebElement context)
         {
             //string command = string.Format("axe.a11yCheck(arguments[0], {0}, arguments[arguments.length - 1]);", Options);
-            string command = getAxeSnippet("arguments[0]");
-            return Execute(command, context);
+            return Execute(context, JsonConvert.SerializeObject(runOptions, JsonSerializerSettings));
         }
 
         /// <summary>
@@ -95,52 +152,12 @@ namespace Selenium.Axe
         /// <returns>An aXe results document</returns>
         public AxeResult Analyze()
         {
-            string axeContext;
+            bool runContextHasData = runContext.Include?.Any() == true || runContext.Exclude?.Any() == true;
 
-            if (_includeExcludeManager.HasMoreThanOneSelectorsToIncludeOrSomeToExclude())
-            {
-                axeContext = $"{ _includeExcludeManager.ToJson()}";
-                //command =    $"axe.a11yCheck({ _includeExcludeManager.ToJson()}, {Options}, arguments[arguments.length - 1]);";
-            }
-            else if (_includeExcludeManager.HasOneItemToInclude())
-            {
-                string itemToInclude = _includeExcludeManager.GetFirstItemToInclude().Replace("'", "");
-                axeContext = $"{itemToInclude}";
-                //command = $"axe.a11yCheck('{itemToInclude}', {Options}, arguments[arguments.length - 1]);";
-            }
-            else
-            {
-                axeContext = "document";
-                //command = $"axe.a11yCheck(document, {Options}, arguments[arguments.length - 1]);";
-            }
+            object contextToBeSent = runContextHasData ? JsonConvert.SerializeObject(runContext, JsonSerializerSettings) : null;
 
-            string command = getAxeSnippet(axeContext);
-
-            return Execute(command);
-        }
-
-        ///<summary>
-        /// Create the axe javascript code to be executed
-        ///</summary>
-        ///
-        /// <param name="context"> HTML content to run "document", "included items", "includeExcludeManager"<param/>
-        private String getAxeSnippet(String context)
-        {
-            return String.Format(
-                "var callback = arguments[arguments.length - 1];" +
-                "var context = {0};" +
-                "var options = {1};" +
-                "var result = {{ error: '', results: null }};" +
-                "axe.run(context, options, function (err, res) {{" +
-                "  if (err) {{" +
-                "    result.error = err.message;" +
-                "  }} else {{" +
-                "    result.results = res;" +
-                "  }}" +
-                "  callback(result);" +
-                "}});",
-                context, $"{Options}"
-                );
+            return Execute(contextToBeSent,
+                JsonConvert.SerializeObject(runOptions, JsonSerializerSettings));
         }
     }
 }

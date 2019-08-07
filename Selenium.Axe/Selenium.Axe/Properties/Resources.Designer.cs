@@ -19,10 +19,10 @@ namespace Selenium.Axe.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace Selenium.Axe.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Selenium.Axe.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace Selenium.Axe.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -61,8 +61,8 @@ namespace Selenium.Axe.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /*! aXe v2.0.5
-        /// * Copyright (c) 2016 Deque Systems, Inc.
+        ///   Looks up a localized string similar to /*! aXe v3.2.2
+        /// * Copyright (c) 2019 Deque Systems, Inc.
         /// *
         /// * Your use of this Source Code Form is subject to the terms of the Mozilla Public
         /// * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -72,11 +72,36 @@ namespace Selenium.Axe.Properties {
         /// * distribute or in any file that contains substantial portions of this source
         /// * code.
         /// */
-        ///!function a(window){function b(a){&quot;use strict&quot;;var b=a||{};return b. [rest of string was truncated]&quot;;.
+        ///!function e(window){var t=window,document=window.document [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string axe_min {
+        public static string axe_min {
             get {
                 return ResourceManager.GetString("axe_min", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to var callback = arguments[arguments.length - 1];
+        ///
+        ///// arguments[0] will have this script content
+        ///var context = arguments[0] || document;
+        ///var options = arguments[1];
+        ///
+        ///console.log(&quot;context passed - &quot;, context, typeof context);
+        ///console.log(&quot;options passed - &quot;, options, typeof options);
+        ///
+        ///var result = { error: &apos;&apos;, results: null };
+        ///axe.run(context, options, function (err, res) {
+        ///    {
+        ///        if (err) {
+        ///            result.error = err.message;
+        ///        } else {
+        ///            result.results = res;
+        ///       [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string scan {
+            get {
+                return ResourceManager.GetString("scan", resourceCulture);
             }
         }
     }
