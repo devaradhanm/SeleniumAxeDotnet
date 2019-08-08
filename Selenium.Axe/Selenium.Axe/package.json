@@ -1,0 +1,6 @@
+{
+  "license": "MIT",
+  "dependencies": {
+    "axe-core": "^3.3.1"
+  }
+}
