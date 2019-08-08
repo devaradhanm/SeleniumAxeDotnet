@@ -57,10 +57,8 @@ namespace Selenium.Axe.Test
             var builder = new AxeBuilder(_webDriver).WithTags("wcag2a").DisableRules("color-contrast");
 
             var results = builder.Analyze();
-            results.Should().NotBeNull(nameof(results));
-            JsonConvert.SerializeObject(results.ToolOptions).Should().Be(JsonConvert.SerializeObject(expectedToolOptions));
-
-
+            results.Violations.Should().HaveCount(2);
+            results.ToolOptions.Should().BeEquivalentTo(expectedToolOptions);
         }
 
         [TestMethod]
@@ -82,7 +80,6 @@ namespace Selenium.Axe.Test
         {
             _webDriver.Navigate().GoToUrl(IntegrationTestTargetUrl);
 
-            // wait for email input box is found
             _wait.Until(drv => drv.FindElement(By.TagName(mainElementSelector)));
         }
 

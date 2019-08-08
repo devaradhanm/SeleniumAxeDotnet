@@ -25,7 +25,6 @@ namespace Selenium.Axe
             NullValueHandling = NullValueHandling.Include
         };
 
-        [Obsolete("Options is deprecated. This will be removed in future versions. Please use WithTags, WithRules & DisableRules apis instead")]
         public string Options { get; set; } = "{}";
 
         /// <summary>
@@ -110,10 +109,16 @@ namespace Selenium.Axe
         }
 
         /// <summary>
-        /// Selectors to include in the validation.
+        /// Selectors to include in the validation. 
+        /// Note that the selectors array uniquely identifies one element in the page,
+        /// Valid usage: 
+        ///     axeBuilder.Include("#parent-iframe1", "#element-inside-iframe"); => to select #element-inside-iframe under #parent-iframe1
+        ///     axeBuilder.Include("#element-inside-main-frame1");
+        ///     
+        /// Invalid usage:
+        ///      axeBuilder.Include("#element-inside-main-frame1", "#element-inside-main-frame2");
         /// </summary>
         /// <param name="selectors">Any valid CSS selectors</param>
-        /// <returns></returns>
         public AxeBuilder Include(params string[] selectors)
         {
             ValidateParameters(selectors, nameof(selectors));
@@ -125,6 +130,7 @@ namespace Selenium.Axe
 
         /// <summary>
         /// Selectors to exclude in the validation.
+        /// Note that the selectors array uniquely identifies one element in the page. Refer <see cref="Include(string[]) for more information on the usage"/>
         /// </summary>
         /// <param name="selectors">Any valid CSS selectors</param>
         /// <returns></returns>
